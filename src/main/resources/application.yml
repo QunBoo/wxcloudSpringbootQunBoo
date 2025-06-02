@@ -5,12 +5,9 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
-#    username: ${MYSQL_USERNAME}
-#    password: ${MySQL_PASSWORD}
-    url: jdbc:mysql://sh-cynosdbmysql-grp-ohu3nszc.sql.tencentcdb.com:27015/springboot_demo?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: VgGTb7HB
+    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
+    username: ${MYSQL_USERNAME}
+    password: ${MySQL_PASSWORD}
   mvc:
     view:
       suffix: .html
@@ -18,3 +15,9 @@ spring:
 
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
+
+# TODO：记得删除后提交代码
+# 直接定义 DEEPSEEK_KEY 的值
+
+deepseek:
+  key: ${DEEPSEEK_KEY}
