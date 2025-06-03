@@ -10,6 +10,7 @@ public class AIChatMessage {
     // messages 字段的 setter 方法
     // 聊天消息列表
     @Setter
+    @Getter
     private List<Message> messages;
     // model 字段的 setter 方法
     // model 字段的 getter 方法
@@ -37,6 +38,10 @@ public class AIChatMessage {
         // 消息的内容
         private String content;
 
+        public Message(String contentstr, String rolestr) {
+            this.content = contentstr;
+            this.role = rolestr;
+        }
     }
 
 

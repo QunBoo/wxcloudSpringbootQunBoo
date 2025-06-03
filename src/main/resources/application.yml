@@ -16,8 +16,7 @@ spring:
 mybatis:
   mapper-locations: classpath*:mapper/*Mapper.xml
 
-# TODO：记得删除后提交代码
-# 直接定义 DEEPSEEK_KEY 的值
+# FIXME: 记得删除后提交代码
 
 deepseek:
   key: ${DEEPSEEK_KEY}
