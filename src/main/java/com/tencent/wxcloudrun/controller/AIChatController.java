@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.wxcloudrun.model.AIChatMessage;
 import com.tencent.wxcloudrun.model.AIChatTestMessage;
 import com.tencent.wxcloudrun.service.impl.AIChatService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import okhttp3.Call;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -13,18 +15,24 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 
+/**
+ * 聊天控制器
+ */
+@Api(tags = "AI聊天功能")
 @RestController
 @RequestMapping("/chat")
 public class AIChatController {
     @Autowired
     private AIChatService chatService;
 
+    @ApiOperation("简单AI聊天函数")
     @PostMapping
     public String chat(@RequestBody AIChatMessage message) throws IOException {
 //        String message1 = "";
         return chatService.Chat(message);
     }
 
+    @ApiOperation("简单AI聊天函数")
     @PostMapping("/teststr")
     public String strchat(@RequestBody AIChatTestMessage message) throws IOException {
         String msgStr = message.getMessage();
@@ -34,6 +42,7 @@ public class AIChatController {
         return result;
     }
 
+    @ApiOperation("AI流聊天测试")
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamChat(@RequestBody AIChatTestMessage message){
         String msgStr = message.getMessage();
@@ -78,6 +87,7 @@ public class AIChatController {
         return emitter;
     }
 
+    @ApiOperation("AI流聊天")
     @PostMapping(value = "/AIStreamChat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter AIStreamChat(@RequestBody AIChatMessage ChatMessage) throws IOException {
         SseEmitter emitter = new SseEmitter();

@@ -1,5 +1,7 @@
 package com.tencent.wxcloudrun.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.tencent.wxcloudrun.config.ApiResponse;
@@ -19,8 +21,8 @@ import java.util.List;
 /**
  * counter控制器
  */
+@Api(tags = "计数器功能")
 @RestController
-
 public class CounterController {
 
   final CounterService counterService;
@@ -36,6 +38,7 @@ public class CounterController {
    * 获取当前计数
    * @return API response json
    */
+  @ApiOperation("获取当前计数")
   @GetMapping(value = "/api/count")
   ApiResponse get() {
     logger.info("/api/count get request");
@@ -54,6 +57,7 @@ public class CounterController {
    * @param request {@link CounterRequest}
    * @return API response json
    */
+  @ApiOperation("更新计数，自增或者清零")
   @PostMapping(value = "/api/count")
   ApiResponse create(@RequestBody CounterRequest request) {
     logger.info("/api/count post request, action: {}", request.getAction());
