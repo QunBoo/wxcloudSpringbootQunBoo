@@ -32,7 +32,7 @@ public class AIChatWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.put(session.getId(), session);
-        session.sendMessage(new TextMessage("Connected to AI chat service. Send your message."));
+//        session.sendMessage(new TextMessage("Connected to AI chat service. Send your message."));
     }
 
     /**
