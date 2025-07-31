@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.model;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,8 +27,7 @@ public class AIChatMessage {
     private String chatType;
 
     // 内部类 Message 用于表示单条聊天消息
-    @Setter
-    @Getter
+    @Data
     public static class Message {
         // role 字段的 setter 方法
         // role 字段的 getter 方法

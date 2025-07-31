@@ -112,18 +112,19 @@ public class AIService implements IAIService {
         ObjectMapper objectMapper = new ObjectMapper();
         List<AIChatMessage.Message> msgList = new ArrayList<>();
         try {
+            // 清理 JSON 字符串，移除控制字符
+            String cleanJsonStr = jsonStr.replaceAll("[\\p{Cntrl}&&[^\n\t]]", "");
             // 解析 JSON 数组
-            JsonNode jsonNode = objectMapper.readTree(jsonStr);
-//            log.info("jsonStr:{}", jsonStr);
-//            log.info("jsonNode:{}",jsonNode);
+            JsonNode jsonNode = objectMapper.readTree(cleanJsonStr);
 
             if (jsonNode.isArray()) {
                 for (JsonNode node : jsonNode) {
                     String role = node.get("role").asText();
                     String content = node.get("content").asText();
 
+                    String cleanContent =  content.replaceAll("[\\p{Cntrl}&&[^\n\t]]", "");
                     // 创建 Message 对象并添加到 List
-                    AIChatMessage.Message message = new AIChatMessage.Message(content, role);
+                    AIChatMessage.Message message = new AIChatMessage.Message(cleanContent, role);
                     msgList.add(message);
                 }
             }
@@ -135,10 +136,10 @@ public class AIService implements IAIService {
         String sysContent = msgList.get(0).getContent();
         //删除第一个
         msgList.remove(0);
-        log.info("msgList:{}", msgList);
+//        log.info("msgList:{}", msgList);
         // 构建请求体，包含与 AI 交互所需的参数
         RequestBody body = buildRequestBody(mediaType, msgList, sysContent,true);
-//        RequestBody body = RequestBody.create(jsonStr, mediaType);
+        log.info("requestBody:{}",body);
         Request request = new Request.Builder()
                 .url("https://api.deepseek.com/chat/completions")
                 .method("POST", body)
@@ -146,13 +147,31 @@ public class AIService implements IAIService {
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer " + deepSeekConfig.getDeepSeekKey())
                 .build();
-        log.info("request:{}",request);
+        log.info("requestBody:{}",request.body());
         //2. 调用接口，得到AI返回的结果并返回
         client.newCall(request).enqueue(new okhttp3.Callback(){
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                try (ResponseBody responseBody = response.body();
-                     BufferedReader reader = new BufferedReader(new InputStreamReader(responseBody.byteStream(), StandardCharsets.UTF_8))) {
+                // 1. 检查HTTP响应状态码
+                if (!response.isSuccessful()) {
+                    String errorBody = response.body() != null ? response.body().string() : "无响应体";
+                    log.error("API调用失败 - 状态码: {}, 消息: {}, 响应体: {}",
+                            response.code(), response.message(), errorBody);
+                    callback.onFailure(call, new IOException("API调用失败: " + response.code() + " " + response.message()));
+                    return;
+                }
+
+                try (ResponseBody responseBody = response.body()) {
+                    // 2. 检查响应体是否为空
+                    if (responseBody == null) {
+                        log.error("API调用成功但响应体为空");
+                        callback.onFailure(call, new IOException("响应体为空"));
+                        return;
+                    }
+
+                    // 3. 处理正常响应流
+                    BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(responseBody.byteStream(), StandardCharsets.UTF_8));
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.startsWith("data: ")) {
@@ -165,12 +184,16 @@ public class AIService implements IAIService {
                         }
                     }
                 } catch (IOException e) {
+                    // 4. 捕获响应处理过程中的异常
+                    log.error("处理API响应时发生异常", e);
                     callback.onFailure(call, e);
                 }
             }
 
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                // 5. 捕获请求发送过程中的异常
+                log.error("API调用失败: " + e.getMessage(), e);
                 callback.onFailure(call, e);
             }
         });
@@ -200,7 +223,8 @@ public class AIService implements IAIService {
         messageJson.append("\n  ],\n  \"model\": \"deepseek-chat\",\n  \"frequency_penalty\": 0,\n  \"max_tokens\": 2048,\n  \"presence_penalty\": 0,\n  \"response_format\": {\n    \"type\": \"text\"\n  },\n  \"stop\": null,\n  \"stream\": ")
                 .append(isStream)
                 .append(",\n  \"stream_options\": null,\n  \"temperature\": 1,\n  \"top_p\": 1,\n  \"tools\": null,\n  \"tool_choice\": \"none\",\n  \"logprobs\": false,\n  \"top_logprobs\": null\n}");
-        return RequestBody.create(messageJson.toString(), mediaType);
+        String cleanMessageJson = messageJson.toString().replaceAll("[\\p{Cntrl}]", "");
+        return RequestBody.create(cleanMessageJson, mediaType);
     }
 
 }
