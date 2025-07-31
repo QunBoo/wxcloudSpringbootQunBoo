@@ -1,10 +1,12 @@
 package com.tencent.wxcloudrun.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.wxcloudrun.common.Callback;
 import com.tencent.wxcloudrun.model.AIChatMessage;
 import com.tencent.wxcloudrun.model.DeepSeekConfig;
 import com.tencent.wxcloudrun.service.IAIService;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Service
 public class AIService implements IAIService {
 
@@ -99,15 +102,43 @@ public class AIService implements IAIService {
      * @return
      */
     public String streamAIResponseJsonStr(String jsonStr, Callback callback) {
+//        System.out.println("jsonStr: " + jsonStr);
         // 1. 组装AIChatMessage Chatmessage
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
         MediaType mediaType = MediaType.parse("application/json");
 
-        AIChatMessage.Message userMessage = new AIChatMessage.Message(jsonStr, "user");
+        // 使用 Jackson 的 ObjectMapper 解析 JSON
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<AIChatMessage.Message> msgList = new ArrayList<>();
+        try {
+            // 解析 JSON 数组
+            JsonNode jsonNode = objectMapper.readTree(jsonStr);
+//            log.info("jsonStr:{}", jsonStr);
+//            log.info("jsonNode:{}",jsonNode);
+
+            if (jsonNode.isArray()) {
+                for (JsonNode node : jsonNode) {
+                    String role = node.get("role").asText();
+                    String content = node.get("content").asText();
+
+                    // 创建 Message 对象并添加到 List
+                    AIChatMessage.Message message = new AIChatMessage.Message(content, role);
+                    msgList.add(message);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 可以在这里处理异常，比如返回空列表或抛出运行时异常
+        }
+        //提取msgList第一条的system content内容
+        String sysContent = msgList.get(0).getContent();
+        //删除第一个
+        msgList.remove(0);
+        log.info("msgList:{}", msgList);
         // 构建请求体，包含与 AI 交互所需的参数
-//        RequestBody body = buildRequestBody(mediaType, msgList, "You are a helpful assistant",true);
-        RequestBody body = RequestBody.create(jsonStr, mediaType);
+        RequestBody body = buildRequestBody(mediaType, msgList, sysContent,true);
+//        RequestBody body = RequestBody.create(jsonStr, mediaType);
         Request request = new Request.Builder()
                 .url("https://api.deepseek.com/chat/completions")
                 .method("POST", body)
@@ -115,6 +146,7 @@ public class AIService implements IAIService {
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer " + deepSeekConfig.getDeepSeekKey())
                 .build();
+        log.info("request:{}",request);
         //2. 调用接口，得到AI返回的结果并返回
         client.newCall(request).enqueue(new okhttp3.Callback(){
             @Override

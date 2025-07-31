@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.wxcloudrun.common.Callback;
 import com.tencent.wxcloudrun.service.IAIService;
 import com.tencent.wxcloudrun.service.impl.AIChatService;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -17,6 +18,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Component
 public class AIChatWebSocketHandler extends TextWebSocketHandler {
 
@@ -45,6 +47,7 @@ public class AIChatWebSocketHandler extends TextWebSocketHandler {
         SseEmitter emitter = new SseEmitter();
         ObjectMapper objectMapper = new ObjectMapper();
         String messageStr = message.getPayload();
+//        log.info("WebSocket messageStr:{}", messageStr);
 
         // 发送确认消息
 //        session.sendMessage(new TextMessage("Processing your message: " + messageStr));
