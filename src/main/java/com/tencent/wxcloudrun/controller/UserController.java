@@ -1,5 +1,6 @@
 package com.tencent.wxcloudrun.controller;
 
+import com.tencent.wxcloudrun.dto.UserDataDto;
 import com.tencent.wxcloudrun.dto.UserDto;
 import com.tencent.wxcloudrun.model.ResponseMessage;
 import com.tencent.wxcloudrun.model.User;
@@ -8,6 +9,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @Api(tags = "用户管理功能")
 @RestController
@@ -36,4 +39,22 @@ public class UserController {
         System.out.println("com.tencent.wxcloudrun.controller: " + u.toString());
         return ResponseMessage.success(u);
     }
+
+    @ApiOperation(value = "获取OpenId")
+    @PostMapping("/getOpenId")
+    public ResponseMessage<String> getOpenId(@RequestBody Map<String, String> request) {
+        String code = request.get("code");
+        System.out.println("code: " + code);
+//        String openId = userService.getOpenIdByCode(code);
+        return ResponseMessage.success(code);
+    }
+
+    @ApiOperation(value = "保存用户信息")
+    @PostMapping("/saveUser")
+    public ResponseMessage<User> saveUser(@RequestBody UserDataDto userData) {
+//        User savedUser = userService.save(userData);
+        return ResponseMessage.success(userData);
+    }
+
+
 }
